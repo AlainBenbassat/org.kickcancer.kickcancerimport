@@ -16,48 +16,23 @@ class CRM_Kickcancerimport_Form_Import extends CRM_Core_Form {
   }
 
   public function postProcess() {
-    $task = $this->getSubmittedTask();
-    if ($task == 'config') {
-      $config = new CRM_Importmeps_Config();
-      $config->create();
+    try {
+      $task = $this->getSubmittedTask();
+      if ($task == 'config') {
+        $config = new CRM_Kickcancerimport_Config();
+        $config->create();
+      }
+      else {
+        $processor = new CRM_Kickcancerimport_Processor();
+        $processor->run($task);
+      }
+      CRM_Core_Session::setStatus('Done', $task, 'success');
     }
-    elseif ($task == 'import_ep_orgs') {
-      $ep = new CRM_Importmeps_EuroParliament();
-      $ep->importOrgs();
-    }
-    elseif ($task == 'import_ep_persons') {
-      $ep = new CRM_Importmeps_EuroParliament();
-      $ep->importPersons();
-    }
-    elseif ($task == 'import_ec_orgs') {
-      $ep = new CRM_Importmeps_EuroCommission();
-      $ep->importOrgs();
-    }
-    elseif ($task == 'import_ec_cabinet_persons') {
-      $ep = new CRM_Importmeps_EuroCommission();
-      $ep->importEcPersons('tmp_ec_cabinet_persons');
-    }
-    elseif ($task == 'import_ec_dg_persons') {
-      $ep = new CRM_Importmeps_EuroCommission();
-      $ep->importEcPersons('tmp_ec_dg_persons');
-    }
-    elseif ($task == 'import_ec_eeas_persons') {
-      $ep = new CRM_Importmeps_EuroCommission();
-      $ep->importEcPersons('tmp_ec_eeas_persons');
-    }
-    elseif ($task == 'import_permreps_orgs') {
-      $ep = new CRM_Importmeps_PermReps();
-      $ep->importOrgs();
-    }
-    elseif ($task == 'import_permreps_persons') {
-      $ep = new CRM_Importmeps_PermReps();
-      $ep->importPersons();
-    }
-    else {
-      $task .= ' is not implemented!';
+    catch (Exception $e) {
+      CRM_Core_Session::setStatus($e->getMessage(), $task, 'error');
     }
 
-    CRM_Core_Session::setStatus('Done', $task, 'status');
+
   }
 
   private function getSubmittedTask() {
@@ -70,9 +45,9 @@ class CRM_Kickcancerimport_Form_Import extends CRM_Core_Form {
 
     $tasks = [
       'config' => 'Create config items' . $sep,
-      'import_fdr' => 'Import FDR contacts',
-      'import_iraiser' => 'Import iRaiser contacts',
-      'import_koalect' => 'Import Koalect contacts',
+      'tmp_import_frb' => 'Import FDR contacts',
+      'tmp_import_iraiser' => 'Import iRaiser contacts',
+      'tmp_import_koalect' => 'Import Koalect contacts',
     ];
 
     return $tasks;
