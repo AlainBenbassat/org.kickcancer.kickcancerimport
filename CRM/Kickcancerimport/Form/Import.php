@@ -31,8 +31,6 @@ class CRM_Kickcancerimport_Form_Import extends CRM_Core_Form {
     catch (Exception $e) {
       CRM_Core_Session::setStatus($e->getMessage(), $task, 'error');
     }
-
-
   }
 
   private function getSubmittedTask() {
@@ -43,9 +41,10 @@ class CRM_Kickcancerimport_Form_Import extends CRM_Core_Form {
   private function getTasks() {
     $sep = '<br>--------------------------------------------------------------';
 
+    // the key of the task is the name of the table that contain these items (except "config")
     $tasks = [
       'config' => 'Create config items' . $sep,
-      'tmp_import_frb' => 'Import FDR contacts',
+      'tmp_import_frb' => 'Import FRB contacts',
       'tmp_import_iraiser' => 'Import iRaiser contacts',
       'tmp_import_koalect' => 'Import Koalect contacts',
     ];

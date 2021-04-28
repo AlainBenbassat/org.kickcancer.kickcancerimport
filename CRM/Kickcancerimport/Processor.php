@@ -7,8 +7,8 @@ class CRM_Kickcancerimport_Processor {
     $queue->run();
   }
 
-  private function addEntityIDsToQueue($entityTable, $queue): void {
-    $class = 'CRM_Kickcancerimport_Processor';
+  private function addEntityIDsToQueue($entityTable, $queue) {
+    $class = __CLASS__;
     $method = 'processQueueTask';
 
     $sql = "select id from $entityTable";
@@ -18,19 +18,21 @@ class CRM_Kickcancerimport_Processor {
     }
   }
 
-  public static function getClassFromEntityTable($entityTable) {
-    if ($entityTable == 'tmp_import_fdr') {
-      $class = 'CRM_Kickcancerimport_FRB';
+  public static function processQueueTask(CRM_Queue_TaskContext $ctx, $entityTable, $id) {
+    $importer = self::getImportObjectFromTableName($entityTable);
+    $importer->import($entityTable, $id);
+    return TRUE;
+  }
+
+  public static function getImportObjectFromTableName($entityTable) {
+    if ($entityTable == 'tmp_import_frb') {
+      $className = 'CRM_Kickcancerimport_ImporterFRB';
     }
     else {
       throw new Exception("$entityTable is not implemented");
     }
 
-    return $class;
-  }
-
-  public static function processQueueTask(CRM_Queue_TaskContext $ctx, $entityTable, $id) {
-    $class = self::getClassFromEntityTable($entityTable);
-    $class->import($id);
+    $obj = new $className;
+    return $obj;
   }
 }
