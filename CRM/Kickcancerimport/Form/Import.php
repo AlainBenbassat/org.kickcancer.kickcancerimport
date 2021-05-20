@@ -45,7 +45,8 @@ class CRM_Kickcancerimport_Form_Import extends CRM_Core_Form {
     $tasks = [
       'config' => 'Create config items' . $sep,
       'tmp_import_frb' => 'Import FRB contacts',
-      'tmp_import_iraiser' => 'Import iRaiser contacts',
+      'tmp_import_iraiser_donations' => 'Import iRaiser donations',
+      'tmp_import_iraiser_events' => 'Import iRaiser events',
       'tmp_import_koalect' => 'Import Koalect contacts',
     ];
 

@@ -28,6 +28,12 @@ class CRM_Kickcancerimport_Processor {
     if ($entityTable == 'tmp_import_frb') {
       $className = 'CRM_Kickcancerimport_ImporterFRB';
     }
+    elseif ($entityTable == 'tmp_import_iraiser_donations') {
+      $className = 'CRM_Kickcancerimport_ImportIraiser';
+    }
+    elseif ($entityTable == 'tmp_import_iraiser_events') {
+      $className = 'CRM_Kickcancerimport_ImportIraiser';
+    }
     else {
       throw new Exception("$entityTable is not implemented");
     }

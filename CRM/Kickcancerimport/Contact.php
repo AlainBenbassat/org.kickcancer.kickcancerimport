@@ -27,6 +27,18 @@ class CRM_Kickcancerimport_Contact {
     return $contactId;
   }
 
+  public function findOrCreateIndividualByNameAndEmail($firstName, $lastName, $email) {
+    $contactId = $this->findIndividualByNameAndEmail($firstName, $lastName, $email);
+    if ($contactId == 0) {
+      $contactId = $this->createIndividual([
+        'first_name' => $firstName . '',
+        'last_name' => $lastName,
+      ]);
+    }
+
+    return $contactId;
+  }
+
   public function findOrCreateOrganizationByName($organizationName) {
     $contactId = $this->findOrganizationByName($organizationName);
     if ($contactId == 0) {
@@ -49,16 +61,47 @@ class CRM_Kickcancerimport_Contact {
       where 
         c.is_deleted = 0
       and
-        c.first_name = %1
+        ifnull(c.first_name, '') = %1
       and 
-        c.last_name = %2
+        ifnull(c.last_name, '') = %2
       and
-        a.postal_code = %3
+        ifnull(a.postal_code, '') = %3
     ";
     $sqlParams = [
       1 => [$firstName . '', 'String'],
       2 => [$lastName . '', 'String'],
       3 => [$postalCode . '', 'String'],
+    ];
+    $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+    if ($dao->fetch()) {
+      return $dao->id;
+    }
+    else {
+      return 0;
+    }
+  }
+
+  private function findIndividualByNameAndEmail($firstName, $lastName, $email) {
+    $sql = "
+      select 
+        c.id 
+      from 
+        civicrm_contact c
+      left outer join
+        civicrm_email e on e.contact_id = c.id
+      where 
+        c.is_deleted = 0
+      and
+        ifnull(c.first_name, '') = %1
+      and 
+        ifnull(c.last_name, '') = %2
+      and
+        ifnull(e.email, '') = %3
+    ";
+    $sqlParams = [
+      1 => [$firstName . '', 'String'],
+      2 => [$lastName . '', 'String'],
+      3 => [$email . '', 'String'],
     ];
     $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
     if ($dao->fetch()) {
@@ -84,7 +127,7 @@ class CRM_Kickcancerimport_Contact {
     }
   }
 
-  private function createIndividual($params) {
+  public function createIndividual($params) {
     $params['sequential'] = 1;
     $params['contact_type'] = 'Individual';
     $params['source'] = $this->source;
@@ -92,7 +135,7 @@ class CRM_Kickcancerimport_Contact {
     return $result['values'][0]['id'];
   }
 
-  private function createOrganization($params) {
+  public function createOrganization($params) {
     $params['sequential'] = 1;
     $params['contact_type'] = 'Organization';
     $params['source'] = $this->source;
@@ -100,8 +143,13 @@ class CRM_Kickcancerimport_Contact {
     return $result['values'][0]['id'];
   }
 
-  private function createAddress($params) {
+  public function createAddress($params) {
     $result = civicrm_api3('Address', 'create', $params);
+    return $result['values'][0]['id'];
+  }
+
+  public function createEmail($params) {
+    $result = civicrm_api3('Email', 'create', $params);
     return $result['values'][0]['id'];
   }
 
