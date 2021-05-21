@@ -14,7 +14,7 @@ class CRM_Kickcancerimport_ImportIraiser extends CRM_Kickcancerimport_ImporterBa
 
   private function importDonations($entityTable, $id) {
     $iRaiserRecord = $this->getRecordToImport($entityTable, $id);
-    list($contactId, $employerId) = $this->processContact($iRaiserRecord);
+    [$contactId, $employerId] = $this->processContact($iRaiserRecord);
 
     if ($employerId) {
       // add donation to organization
@@ -35,7 +35,7 @@ class CRM_Kickcancerimport_ImportIraiser extends CRM_Kickcancerimport_ImporterBa
 
     $contactId = $contact->findOrCreateIndividualByNameAndEmail($iRaiserRecord->first_name, $iRaiserRecord->last_name, $iRaiserRecord->email);
 
-    $employerId = '';
+    $employerId = 0;
     if ($iRaiserRecord->current_employer) {
       $employerId = $contact->findOrCreateOrganizationByName($iRaiserRecord->organization_name);
       $locType = $contact->LOCATION_TYPE_WORK;
@@ -50,17 +50,17 @@ class CRM_Kickcancerimport_ImportIraiser extends CRM_Kickcancerimport_ImporterBa
     $contact->updateOrCreateAddress($addressContactId, $locType, $iRaiserRecord->street_address, $iRaiserRecord->postal_code, $iRaiserRecord->city, $iRaiserRecord->country);
 
     // add extra info to contact
-    $params = [
-      'id' => $contactId,
-      'employer_id' => $employerId,
-      'birth_date' => $iRaiserRecord->birth_date,
-      'prefix_id' => $iRaiserRecord->prefix_id,
-      'preferred_language' => $iRaiserRecord->preferred_language,
-    ];
+    $params = [];
+    $params['id'] = $contactId;
+    $this->addToParamIfValueNotEmpty($params, 'prefix_id', $iRaiserRecord->prefix_id);
+    $this->addToParamIfValueNotEmpty($params, 'gender_id', $iRaiserRecord->gender_id);
+    $this->addToParamIfValueNotEmpty($params, 'preferred_language', $iRaiserRecord->preferred_language);
+    $this->addToParamIfValueNotEmpty($params, 'employer_id', $employerId);
+    $this->addToParamIfValueNotEmpty($params, 'birth_date', $iRaiserRecord->birth_date);
     $contact->createIndividual($params);
 
     $params = [
-      'id' => $contactId,
+      'contact_id' => $contactId,
       'email' => $iRaiserRecord->email,
     ];
     $contact->createEmail($params);
@@ -71,6 +71,12 @@ class CRM_Kickcancerimport_ImportIraiser extends CRM_Kickcancerimport_ImporterBa
   private function processContribution($contactId, $iRaiserRecord) {
     $contribution = new CRM_Kickcancerimport_Contribution();
     $contribution->create($contactId, $iRaiserRecord->amount, $iRaiserRecord->receive_date, $this->importSource . ' ' . $iRaiserRecord->payment_reference);
+  }
+
+  private function addToParamIfValueNotEmpty(&$param, $key, $value) {
+    if ($value) {
+      $param[$key] = $value;
+    }
   }
 
 }
