@@ -22,6 +22,9 @@ class CRM_Kickcancerimport_Form_Import extends CRM_Core_Form {
         $config = new CRM_Kickcancerimport_Config();
         $config->create();
       }
+      elseif ($task == 'test') {
+        $this->test();
+      }
       else {
         $processor = new CRM_Kickcancerimport_Processor();
         $processor->run($task);
@@ -48,6 +51,7 @@ class CRM_Kickcancerimport_Form_Import extends CRM_Core_Form {
       'tmp_import_iraiser_donations' => 'Import iRaiser donations',
       'tmp_import_iraiser_events' => 'Import iRaiser events',
       'tmp_import_koalect' => 'Import Koalect contacts',
+      'test' => 'test',
     ];
 
     return $tasks;
@@ -63,6 +67,11 @@ class CRM_Kickcancerimport_Form_Import extends CRM_Core_Form {
     ];
 
     return $buttons;
+  }
+
+  private function test() {
+    $o = new CRM_Kickcancerimport_ImporterIraiser();
+    $o->import('tmp_import_iraiser_donations', 34);
   }
 
   public function getRenderableElementNames() {

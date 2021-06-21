@@ -149,7 +149,10 @@ class CRM_Kickcancerimport_Contact {
   }
 
   public function createEmail($params) {
-    $result = civicrm_api3('Email', 'create', $params);
+    $result = civicrm_api3('Email', 'get', $params);
+    if ($result['count'] == 0) {
+      $result = civicrm_api3('Email', 'create', $params);
+    }
     return $result['values'][0]['id'];
   }
 
@@ -158,6 +161,7 @@ class CRM_Kickcancerimport_Contact {
       'contact_id' => $contactId,
       'location_type_id' => $locationTypeId,
       'street_address' => $streetAddress,
+      'postal_code' => $postalCode,
       'city' => $city,
       'country_id' => $this->getCountryId($country, $postalCode),
     ];
