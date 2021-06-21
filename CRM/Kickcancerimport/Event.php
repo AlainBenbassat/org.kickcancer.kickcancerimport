@@ -1,7 +1,9 @@
 <?php
 
 class CRM_Kickcancerimport_Event {
-  const EVENT_TYPE_FUNDRAISER = 3;
+  private const EVENT_TYPE_FUNDRAISER = 3;
+  private const PARTICIPANT_STATUS_ATTENDED = 2;
+  private const PARTICIPANT_ROLE_ATTENDEE = 1;
 
   public function create($eventName, $eventStartDate, $eventEndDate) {
     $event = $this->getAndCreateIfNotExists($eventName, $eventStartDate, $eventEndDate);
@@ -9,7 +11,28 @@ class CRM_Kickcancerimport_Event {
   }
 
   public function createParticipant($contactId, $eventId, $registrationDate) {
+    $params = [
+      'sequential' => 1,
+      'event_id' => $eventId,
+      'contact_id' => $contactId,
+      'role_id' => self::PARTICIPANT_ROLE_ATTENDEE,
+      'status_id' => self::PARTICIPANT_STATUS_ATTENDED,
+      'register_date' => $registrationDate,
+    ];
 
+    $p = civicrm_api3('Participant', 'create', $params);
+    return $p['values'][0];
+  }
+
+  public function createEventPayment($participantId, $contributionId) {
+    $params = [
+      'sequential' => 1,
+      'participant_id' => $participantId,
+      'contribution_id' => $contributionId,
+    ];
+
+    $ep = civicrm_api3('ParticipantPayment', 'create', $params);
+    return $ep['values'][0];
   }
 
   private function getAndCreateIfNotExists($eventName, $eventStartDate, $eventEndDate) {

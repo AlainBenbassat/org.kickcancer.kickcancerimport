@@ -5,28 +5,30 @@ class CRM_Kickcancerimport_ImporterIraiser extends CRM_Kickcancerimport_Importer
     $this->importSource = 'iRaiser';
 
     if ($entityTable == 'tmp_import_iraiser_donations') {
-      $this->importDonations($entityTable, $id);
+      $this->importDonation($entityTable, $id);
     }
     elseif ($entityTable == 'tmp_import_iraiser_events') {
-      $this->importEvents($entityTable, $id);
+      $this->importEvent($entityTable, $id);
     }
   }
 
-  private function importDonations($entityTable, $id) {
+  private function importDonation($entityTable, $id) {
     $iRaiserRecord = $this->getRecordToImport($entityTable, $id);
     [$contactId, $employerId] = $this->processContact($iRaiserRecord);
 
     if ($employerId) {
-      // add donation to organization
-      $this->processContribution($employerId, $iRaiserRecord, $contactId);
+      $contribContactId = $employerId;
+      $softContribContactId = $contactId;
     }
     else {
-      // add donation to individual
-      $this->processContribution($contactId, $iRaiserRecord, 0);
+      $contribContactId = $contactId;
+      $softContribContactId = 0;
     }
+
+    $this->processContribution($contribContactId, $iRaiserRecord, $softContribContactId);
   }
 
-  private function importEvents($entityTable, $id) {
+  private function importEvent($entityTable, $id) {
     $iRaiserRecord = $this->getRecordToImport($entityTable, $id);
     [$contactId, $employerId] = $this->processContact($iRaiserRecord);
 
@@ -73,7 +75,7 @@ class CRM_Kickcancerimport_ImporterIraiser extends CRM_Kickcancerimport_Importer
 
   private function processContribution($contactId, $iRaiserRecord, $softContribContactId) {
     $contribution = new CRM_Kickcancerimport_Contribution();
-    $contrib = $contribution->create($contactId, $iRaiserRecord->amount, $iRaiserRecord->receive_date, $this->importSource . ' ' . $iRaiserRecord->payment_reference);
+    $contrib = $contribution->create($contactId, $iRaiserRecord->amount, $iRaiserRecord->receive_date, $this->importSource . ' ' . $iRaiserRecord->payment_reference, CRM_Kickcancerimport_Contribution::FINANCIAL_TYPE_DONATION);
 
     if ($softContribContactId) {
       $contribution->createSoft($contrib['id'], $softContribContactId, $iRaiserRecord->amount);
@@ -83,10 +85,12 @@ class CRM_Kickcancerimport_ImporterIraiser extends CRM_Kickcancerimport_Importer
   private function processEvent($contactId, $iRaiserRecord) {
     $event = new CRM_Kickcancerimport_Event();
     $e = $event->create($iRaiserRecord->event_name, $iRaiserRecord->event_start_date, $iRaiserRecord->event_end_date);
-    $p = $event->createParticipant($contactId, $e['id']);
+    $p = $event->createParticipant($contactId, $e['id'], $iRaiserRecord->event_registration_date);
 
     $contribution = new CRM_Kickcancerimport_Contribution();
-    $contribution->createParticipant($p['id'], $iRaiserRecord->Amount);
+    $contrib = $contribution->create($contactId, $iRaiserRecord->amount, $iRaiserRecord->event_registration_date, $this->importSource . ' ' . $iRaiserRecord->payment_reference, CRM_Kickcancerimport_Contribution::FINANCIAL_TYPE_EVENT);
+
+    $event->createEventPayment($p['id'], $contrib['id']);
   }
 
   private function addToParamIfValueNotEmpty(&$param, $key, $value) {

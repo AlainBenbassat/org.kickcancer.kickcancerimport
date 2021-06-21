@@ -1,17 +1,18 @@
 <?php
 
 class CRM_Kickcancerimport_Contribution {
-  const FINANCIAL_TYPE_DONATION = 1;
-  const PAYMENT_INSTRUMENT_EFT = 5;
-  const SOFT_CONTRIBUTION_TYPE_GIFT = 11;
+  public const FINANCIAL_TYPE_DONATION = 1;
+  public const FINANCIAL_TYPE_EVENT = 4;
+  private const PAYMENT_INSTRUMENT_EFT = 5;
+  private const SOFT_CONTRIBUTION_TYPE_GIFT = 11;
 
-  public function create($contactId, $amount, $receiveDate, $source) {
+  public function create($contactId, $amount, $receiveDate, $source, $financialTypeId) {
     $params = [
       'sequential' => 1,
       'contact_id' => $contactId,
       'total_amount' => $amount,
       'receive_date' => $receiveDate,
-      'financial_type_id' => self::FINANCIAL_TYPE_DONATION,
+      'financial_type_id' => $financialTypeId,
       'payment_instrument_id' => self::PAYMENT_INSTRUMENT_EFT,
       'source' => $source,
     ];

@@ -28,7 +28,7 @@ class CRM_Kickcancerimport_ImporterFRB extends CRM_Kickcancerimport_ImporterBase
 
   private function processContribution($contactId, $frbRecord) {
     $contribution = new CRM_Kickcancerimport_Contribution();
-    $contribution->create($contactId, $frbRecord->amount, $frbRecord->receive_date, $this->importSource . ' ' . $frbRecord->payment_reference);
+    $contribution->create($contactId, $frbRecord->amount, $frbRecord->receive_date, $this->importSource . ' ' . $frbRecord->payment_reference, CRM_Kickcancerimport_Contribution::FINANCIAL_TYPE_DONATION);
   }
 
   private function isOrganization($frbRecord) {
