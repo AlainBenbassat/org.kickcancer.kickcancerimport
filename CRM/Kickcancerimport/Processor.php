@@ -34,6 +34,9 @@ class CRM_Kickcancerimport_Processor {
     elseif ($entityTable == 'tmp_import_iraiser_events') {
       $className = 'CRM_Kickcancerimport_ImporterIraiser';
     }
+    elseif ($entityTable == 'tmp_import_koalect') {
+      $className = 'CRM_Kickcancerimport_ImporterKoalect';
+    }
     else {
       throw new Exception("$entityTable is not implemented");
     }

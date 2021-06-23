@@ -233,6 +233,11 @@ class CRM_Kickcancerimport_Contact {
 
     if ($country) {
       $countryId = $this->getCountryIdFromCountryName($country);
+
+      if (!$countryId) {
+        // try iso code
+        $countryId = $this->getCountryIdFromIsoCode($country);
+      }
     }
     elseif ($postalCode) {
       $countryId = $this->getCountryIdFromPostalCode($postalCode);
